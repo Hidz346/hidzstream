@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover">
+  
+  <link rel="icon" type="image/png" href="https://filegoat.s3.de.io.cloud.ovh.net/8342cda4-ec06-4c04-ae16-0fa16a30c369/file_0000000074d47208bec22b89425caf8b.png">
+  <link rel="apple-touch-icon" href="https://filegoat.s3.de.io.cloud.ovh.net/8342cda4-ec06-4c04-ae16-0fa16a30c369/file_0000000074d47208bec22b89425caf8b.png">
+  
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="HidzStream - Premium Streaming">
+  <meta property="og:description" content="Streaming video terbaik. Kualitas super cepat, ringan, dan responsif.">
+  
+  <title>HidzStream - Nonton Film & Streaming Gratis</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Replace FontAwesome with Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Modern Font Embed -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;600;800;900&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --primary-color: #0ea5e9;
+      --primary-hover: #0284c7;
+      --bg-dark: #0f172a;
+      --bg-card: #1e293b;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: #ffffff;
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+      width: 100%;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Padding for iPhone safe area at bottom */
+    .pb-safe {
+      padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+    }
+    .mob-nav-link.active {
+      color: var(--primary-color);
+    }
+    .mob-nav-link.active i {
+      fill: rgba(14, 165, 233, 0.2);
+    }
+
+    h1, h2, h3, .font-heading {
+      font-family: 'Outfit', sans-serif;
+    }
+    
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-dark); 
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1e293b; 
+      border-radius: 4px;
+    }
+
+    .line-clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); filter: blur(4px); }
+      to { opacity: 1; transform: translateY(0); filter: blur(0); }
+    }
+
+    .card-hover {
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
+    }
+    .card-hover:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.7), 0 0 20px -5px rgba(14, 165, 233, 0.2);
+    }
+    
+    .hero-gradient {
+      background: linear-gradient(135deg, rgba(7, 9, 14, 0.95) 0%, rgba(7, 9, 14, 0.6) 50%, rgba(7, 9, 14, 0) 100%);
+    }
+
+    .logo-glow {
+      background: linear-gradient(to right, #38bdf8, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      transition: filter 0.3s ease;
+    }
+    
+    .nav-link {
+      position: relative;
+    }
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 2px;
+      bottom: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: var(--primary-color);
+      transition: width 0.3s ease;
+      border-radius: 2px;
+    }
+    .nav-link:hover::after, .nav-link.active::after {
+      width: 100%;
+    }
+
+    .badge-blur {
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    iframe, video {
+      max-width: 100%;
+    }
+  </style>
+</head>
+<body class="selection:bg-[#0ea5e9] selection:text-white">
+
+  <!-- Mobile Top Search Area - Non Sticky -->
+  <div class="w-full flex items-center justify-between px-3 sm:px-8 py-4 lg:px-12 bg-[#0f172a] border-b border-white/5">
+    <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+      <h1 class="font-heading text-lg sm:text-xl md:text-2xl font-black tracking-widest cursor-pointer logo-glow" onclick="goHome()">
+        HidzStream
+      </h1>
+    </div>
+    
+    <div class="flex items-center gap-2 sm:gap-4 shrink w-full ml-2 sm:ml-0 justify-end">
+      <form id="search-form" class="flex items-center bg-white/5 border border-white/10 hover:border-white/20 rounded-full px-3 py-1.5 focus-within:border-sky-500/50 focus-within:bg-white/10 transition-all shadow-sm focus-within:shadow-[0_0_15px_rgba(14,165,233,0.15)] w-full max-w-[130px] sm:max-w-xs">
+        <button type="submit" class="text-slate-400 hover:text-sky-400 transition-colors p-1 shrink-0">
+          <i data-lucide="search" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+        </button>
+        <input 
+          type="text" 
+          id="search-input"
+          placeholder="Cari..."
+          class="bg-transparent outline-none text-[14px] sm:text-sm text-white w-full transition-all duration-500 placeholder-slate-500 ml-1.5"
+        >
+      </form>
+    </div>
+  </div>
+
+  <!-- Creator Modal Info -->
+  <div id="creator-modal" class="hidden fixed inset-0 z-[110] bg-[#0f172a]/90 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-[#1e293b] border border-white/10 rounded-3xl max-w-sm w-full p-8 text-center shadow-2xl relative fade-in">
+      <button onclick="toggleCreatorInfo()" class="absolute top-5 right-5 text-slate-500 hover:text-white transition-colors">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+      <div class="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6 border border-white/10 shadow-[0_0_30px_rgba(14,165,233,0.2)]">
+        <i data-lucide="code-2" class="w-8 h-8 text-sky-400"></i>
+      </div>
+      <h3 class="font-heading text-2xl font-black text-white tracking-wide mb-1">HidzStream</h3>
+      <p class="text-sky-400 text-xs font-bold mb-6 tracking-widest uppercase">© Masterfully Crafted By Hidz</p>
+      <p class="text-slate-400 text-sm leading-relaxed mb-8">
+        HidzStream adalah sistem pemutar video streaming ultra-ringan dengan arsitektur Node.js murni berkecepatan tinggi, bebas iklan pengganggu, dan didesain premium.
+      </p>
+      <button onclick="toggleCreatorInfo()" class="w-full bg-[#0ea5e9] hover:bg-[#0284c7] text-white py-3.5 rounded-xl font-bold transition-all hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(14,165,233,0.3)]">
+        Mulai Menonton
+      </button>
+    </div>
+  </div>
+
+  <!-- Fullscreen Loading Spinner -->
+  <div id="loader" class="h-screen w-screen flex flex-col items-center justify-center bg-[#0f172a] transition-all duration-500 fixed inset-0 z-[100]">
+    <i data-lucide="loader-2" class="w-10 h-10 text-[#0ea5e9] animate-spin mb-4"></i>
+    <span class="font-heading text-sky-400 text-sm font-black tracking-[0.2em] animate-pulse">MEMUAT HIDZSTREAM...</span>
+  </div>
+  
+  <!-- Fullscreen Error / No Connection -->
+  <div id="error-message" class="hidden h-screen w-screen flex-col items-center justify-center bg-[#0f172a] text-center px-6 fixed inset-0 z-[100] fade-in">
+    <div class="w-24 h-24 bg-red-500/10 rounded-full flex items-center justify-center mb-6">
+      <i data-lucide="satellite" class="w-10 h-10 text-red-500 animate-pulse"></i>
+    </div>
+    <h2 id="error-text" class="font-heading text-3xl font-black text-white mb-4">Koneksi Terputus</h2>
+    <p class="text-slate-400 text-sm mb-8 max-w-md">Sistem gagal menarik data dari CDN distribusi. Pastikan koneksi internet Anda stabil.</p>
+    <button onclick="retryConnection()" class="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-8 py-3.5 rounded-full font-bold transition-all hover:scale-105">
+      Koneksikan Ulang
+    </button>
+  </div>
+
+  <!-- VIEW 1: HOME VIEW -->
+  <main id="home-view" class="hidden w-full overflow-hidden min-h-screen pb-20 md:pb-0">
+    <!-- Big Premium Hero Banner Section -->
+    <section id="hero-banner-section" class="relative w-full h-[75vh] min-h-[500px] flex items-center overflow-hidden">
+      <!-- Background Banner -->
+      <div class="absolute inset-0 z-0 bg-[#0a0e17]">
+        <img id="hero-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Banner" class="w-full h-full object-cover transition-all duration-[2s] opacity-60 scale-100" referrerpolicy="no-referrer">
+        <div class="absolute inset-0 hero-gradient"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-transparent to-transparent"></div>
+      </div>
+
+      <!-- Hero Details Container -->
+      <div class="relative z-10 px-4 sm:px-8 lg:px-16 max-w-5xl pt-20 sm:pt-24 fade-in box-border font-heading">
+        <div class="flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/10 rounded-full px-3 py-1.5 w-max mb-4 sm:mb-6">
+          <div class="w-1.5 h-1.5 bg-sky-400 rounded-full animate-pulse shadow-[0_0_10px_#38bdf8]"></div>
+          <span class="text-[10px] font-black tracking-[0.2em] text-white">REKOMENDASI PREMIUM</span>
+        </div>
+        
+        <h2 id="hero-title" class="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black leading-tight mb-3 sm:mb-4 text-white w-full break-words tracking-tight drop-shadow-2xl line-clamp-3 md:line-clamp-none">
+          HidzStream PREMIUM
+        </h2>
+        
+        <div class="flex flex-wrap items-center gap-2 sm:gap-3 text-[10px] sm:text-xs font-bold text-slate-300 mb-4 sm:mb-8 tracking-wide">
+          <span class="text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded">100% COCOK</span>
+          <span id="hero-channel" class="hover:text-white transition-colors cursor-pointer text-slate-400">Global CDN</span>
+          <span id="hero-duration" class="border border-white/20 px-2 py-1 rounded">HQ STREAM</span>
+        </div>
+
+        <p id="hero-desc" class="hidden sm:block font-sans max-w-[100%] sm:max-w-2xl text-sm sm:text-base text-slate-400 mb-10 line-clamp-2 leading-relaxed">
+          Nonton koleksi streaming video, animasi terbaru, dan film epik secara langsung tanpa buffering dengan antarmuka sinematik premium.
+        </p>
+
+        <div class="flex gap-3 sm:gap-4 flex-wrap">
+          <button id="hero-play-btn" class="bg-white text-black hover:bg-slate-200 px-6 sm:px-8 py-3 rounded-full flex items-center gap-2 font-bold transition-all text-[11px] sm:text-sm hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.2)]">
+            <i data-lucide="play" class="w-4 h-4 sm:w-5 sm:h-5 fill-current"></i> TONTON SEKARANG
+          </button>
+          <button onclick="toggleCreatorInfo()" class="bg-white/10 hover:bg-white/20 text-white backdrop-blur-md border border-white/20 px-6 sm:px-8 py-3 rounded-full flex items-center gap-2 font-bold transition-all text-[11px] sm:text-sm hover:scale-105 active:scale-95">
+            <i data-lucide="info" class="w-4 h-4 sm:w-5 sm:h-5"></i> INFO DETAIL
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Grid Content List -->
+    <section class="relative z-10 px-4 sm:px-8 lg:px-16 pb-24 -mt-10 sm:-mt-20 fade-in box-border">
+      <h3 id="grid-title" class="font-heading text-lg sm:text-2xl font-black mb-8 text-white flex items-center justify-between">
+        <span class="flex items-center gap-2">
+          Rekomendasimu
+        </span>
+        <span id="video-count-badge" class="text-xs font-semibold text-slate-500 font-sans tracking-wide"></span>
+      </h3>
+      
+      <!-- Video Grid -->
+      <div id="home-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6 w-full"></div>
+      
+      <!-- Load More Button -->
+      <div id="load-more-container" class="hidden w-full flex justify-center mt-12 mb-8">
+        <button id="btn-load-more" onclick="loadMoreVideos()" class="bg-white/5 hover:bg-white/10 text-white border border-white/10 px-8 py-3 rounded-full flex items-center gap-2 font-bold transition-all text-sm hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.05)]">
+          <i data-lucide="loader" class="w-5 h-5"></i> MUAT LEBIH BANYAK
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <!-- VIEW 2: WATCH VIEW -->
+  <main id="watch-view" class="hidden pt-24 sm:pt-28 pb-32 md:pb-24 px-0 sm:px-8 lg:px-16 w-full mx-auto max-w-screen-2xl box-border min-h-screen">
+    <!-- Back Button -->
+    <button onclick="goHome()" class="flex items-center gap-2 mb-4 sm:mb-6 px-4 sm:px-0 text-slate-400 hover:text-white transition-all text-sm font-semibold group w-max">
+      <i data-lucide="arrow-left" class="w-4 h-4 group-hover:-translate-x-1 transition-transform"></i> Kembali
+    </button>
+    
+    <!-- Interactive Player Slot -->
+    <div class="w-full relative fade-in">
+      <div id="player-container" class="w-full aspect-video bg-[#1e293b] sm:rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] border-y sm:border border-white/10 relative">
+        <iframe 
+          id="video-player"
+          class="w-full h-full"
+          src="" 
+          frameborder="0" 
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+          referrerpolicy="no-referrer"
+          allowfullscreen>
+        </iframe>
+      </div>
+    </div>
+
+    <!-- Video Info Description & Social Metrics -->
+    <div class="mt-4 sm:mt-10 px-4 sm:px-0 fade-in w-full box-border">
+      <h1 id="watch-title" class="font-heading text-xl sm:text-3xl md:text-5xl font-black leading-tight sm:leading-tight mb-2 sm:mb-4 text-white drop-shadow-md">
+        JUDUL VIDEO
+      </h1>
+      
+      <div class="flex flex-wrap items-center gap-2 sm:gap-4 text-[10px] sm:text-xs font-bold text-slate-400 mb-4 sm:mb-8 tracking-wide font-sans">
+        <span class="text-emerald-400 bg-emerald-400/10 px-2.5 py-1 rounded">COCOK 98%</span>
+        <span id="watch-channel" class="hover:text-white transition-colors cursor-pointer border-r border-slate-700 pr-2 sm:pr-4">HidzStream Original</span>
+        <div class="flex items-center gap-1.5 text-white">
+          <i data-lucide="star" class="w-3 h-3 sm:w-4 sm:h-4 text-amber-400 fill-amber-400"></i>
+          <span id="watch-rating">9.5</span>
+        </div>
+        <span id="watch-duration" class="bg-white/10 px-2 py-0.5 rounded text-white">24m</span>
+        <span class="border border-white/20 text-sky-400 px-1.5 py-0.5 rounded">ULTRA HD</span>
+      </div>
+      
+      <!-- Native Direct File DL Options -->
+      <div id="quality-selector-container" class="mb-4 sm:mb-8 hidden flex-wrap gap-2 sm:gap-3 items-center bg-[#1e293b] border border-white/5 p-3 sm:p-4 rounded-xl">
+        <span class="text-[10px] sm:text-xs text-slate-500 font-bold flex items-center gap-2"><i data-lucide="sliders-horizontal" class="w-3 h-3 sm:w-4 sm:h-4 text-sky-400"></i> MULTI QUALITY ENGINE:</span>
+        <button id="btn-play-high" class="text-[10px] sm:text-xs bg-sky-500/10 hover:bg-sky-500 hover:text-white text-sky-400 border border-sky-500/30 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-all font-bold"></button>
+        <button id="btn-play-low" class="text-[10px] sm:text-xs bg-white/5 hover:bg-white/20 text-slate-300 border border-white/10 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-all font-bold"></button>
+      </div>
+
+      <p id="watch-desc" class="hidden sm:block max-w-4xl text-slate-400 text-sm md:text-base leading-relaxed hover:text-white transition-colors duration-300 font-sans">
+        Mengalirkan aliran langsung berkecepatan tinggi dari CDN premium. Tanpa buffering, resolusi tinggi, kontrol penuh sepenuhnya di tangan Anda.
+      </p>
+
+      <!-- Interaksi Buttons -->
+      <div class="mt-6 sm:mt-10 flex gap-4 sm:gap-8 flex-wrap">
+        <button onclick="toggleFavorite()" class="flex flex-col items-center gap-3 text-slate-400 hover:text-white transition-all group">
+          <div id="fav-icon-bg" class="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-white/10 transition-all">
+            <i id="fav-icon" data-lucide="heart" class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
+          </div>
+          <span id="fav-text" class="text-xs font-bold tracking-wide">Daftarku</span>
+        </button>
+        <button onclick="toggleLike()" class="flex flex-col items-center gap-3 text-slate-400 hover:text-white transition-all group">
+          <div id="like-icon-bg" class="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-white/10 transition-all">
+            <i id="like-icon" data-lucide="thumbs-up" class="w-5 h-5 group-hover:-translate-y-1 transition-transform"></i>
+          </div>
+          <span class="text-xs font-bold tracking-wide">Nilai</span>
+        </button>
+        <button onclick="shareVideo()" class="flex flex-col items-center gap-3 text-slate-400 hover:text-white transition-all group">
+          <div class="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-white/10 transition-all">
+            <i data-lucide="share-2" class="w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
+          </div>
+          <span class="text-xs font-bold tracking-wide">Bagikan</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Related Videos Slider -->
+    <div class="mt-12 sm:mt-20 px-4 sm:px-0 fade-in w-full box-border">
+      <h3 class="font-heading text-xl sm:text-2xl font-black mb-6 sm:mb-8 text-white">
+        Mirip Seperti Ini
+      </h3>
+      <div id="watch-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6 w-full"></div>
+    </div>
+  </main>
+
+  <footer class="text-center py-12 mb-16 md:mb-0 bg-gradient-to-t from-black to-transparent text-slate-600 border-t border-white/5 mt-auto">
+    <div class="font-heading flex items-center justify-center gap-4 mb-3 text-white/40 tracking-[0.2em] font-black text-xs">
+      <span class="text-slate-300">HidzStream</span>
+      <span class="text-sky-500 border border-sky-500/30 px-2 py-0.5 rounded">Hidz</span>
+    </div>
+    <p class="font-sans text-slate-600 text-[10px]">Semua data bersumber dari server publik. © 2026 HidzStream.</p>
+  </footer>
+
+  <!-- Mobile Bottom Navigation -->
+  <nav class="md:hidden fixed bottom-0 w-full z-50 bg-[#0f172a]/95 backdrop-blur-xl border-t border-white/5 flex items-center justify-around pt-3 pb-safe">
+    <div class="flex flex-col items-center gap-1.5 cursor-pointer text-slate-400 hover:text-white transition mob-nav-link active" onclick="fetchVideos('today\'s selection')">
+      <i data-lucide="home" class="w-5 h-5"></i>
+      <span class="text-[10px] font-bold">Beranda</span>
+    </div>
+    <div class="flex flex-col items-center gap-1.5 cursor-pointer text-slate-400 hover:text-white transition mob-nav-link" onclick="fetchVideos('Anime')">
+      <i data-lucide="play-square" class="w-5 h-5"></i>
+      <span class="text-[10px] font-bold">Anime</span>
+    </div>
+    <div class="flex flex-col items-center gap-1.5 cursor-pointer text-slate-400 hover:text-white transition mob-nav-link" onclick="fetchVideos('Cinematic')">
+      <i data-lucide="film" class="w-5 h-5"></i>
+      <span class="text-[10px] font-bold">Cinematic</span>
+    </div>
+    <div class="flex flex-col items-center gap-1.5 cursor-pointer text-slate-400 hover:text-white transition mob-nav-link" onclick="showFavorites()">
+      <i data-lucide="heart" class="w-5 h-5"></i>
+      <span class="text-[10px] font-bold">Favorit</span>
+    </div>
+  </nav>
+
+  <script src="/app.js"></script>
+  
+  <script>
+    // Inisialisasi ikon Lucide statik di onload
+    lucide.createIcons();
+    
+    (function(){
+      function removeAds(){
+        var ad=document.getElementById('server-footer-ad');
+        if(ad)ad.remove();
+        document.querySelectorAll('link[href*="ads.css"]').forEach(function(el){el.remove();});
+      }
+      removeAds();
+      new MutationObserver(removeAds).observe(document.documentElement,{childList:true,subtree:true});
+    })();
+  </script>
+</body>
+</html>
