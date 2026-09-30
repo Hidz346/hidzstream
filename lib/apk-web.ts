@@ -1118,7 +1118,7 @@ async function dracinStream(urlOrSlug: string, episode = 1) {
     },
   };
 }
-\nexport async function fetchApkJson(path: string, search = new URLSearchParams()) {
+export async function fetchApkJson(path: string, search = new URLSearchParams()) {
   const clean = path.replace(/^\/+/, "");
   const parts = clean.split("/").filter(Boolean);
 
