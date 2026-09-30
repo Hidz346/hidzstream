@@ -2,12 +2,15 @@
 
 import Link from "next/link";
 import { Search, Menu, X, House, Play, BookOpen, Tv, Youtube, Clapperboard, Sparkles } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, type FormEvent, type ReactNode } from "react";
 import Brand from "@/components/brand";
 import ThemeToggle from "@/components/theme-toggle";
 
-const nav = [
+type NavItem = readonly [href: string, label: string, Icon: LucideIcon];
+
+const nav: readonly NavItem[] = [
   ["/anime", "HIDZ ANIME", Play],
   ["/comic", "HIDZ COMIC", BookOpen],
   ["/donghua", "HIDZ DONGHUA", Sparkles],
@@ -15,7 +18,15 @@ const nav = [
   ["/movies", "HIDZ MOVIES", Clapperboard],
   ["/youtube", "HIDZ YOUTUBE", Youtube],
   ["/tv", "HIDZ TV", Tv],
-] as const;
+];
+
+const mobileNav: readonly NavItem[] = [
+  ["/", "Home", House],
+  ["/anime", "Anime", Play],
+  ["/comic", "Comic", BookOpen],
+  ["/donghua", "Donghua", Sparkles],
+  ["/tv", "TV", Tv],
+];
 
 export default function SiteChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -86,10 +97,10 @@ export default function SiteChrome({ children }: { children: ReactNode }) {
 
       <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/10 bg-[color-mix(in_srgb,var(--bg)_90%,transparent)] px-2 pb-[env(safe-area-inset-bottom)] pt-2 backdrop-blur-xl md:hidden">
         <div className="mx-auto grid max-w-lg grid-cols-5 gap-1">
-          {[["/", "Home", House], ["/anime", "Anime", Play], ["/comic", "Comic", BookOpen], ["/donghua", "Donghua", Sparkles], ["/tv", "TV", Tv]].map(([href, label, Icon]) => {
-            const active = pathname === href || (href !== "/" && pathname.startsWith(String(href)));
+          {mobileNav.map(([href, label, Icon]) => {
+            const active = pathname === href || (href !== "/" && pathname.startsWith(href));
             return (
-              <Link href={String(href)} key={String(href)} className={`flex flex-col items-center gap-1 rounded-xl py-2 text-[10px] font-bold ${active ? "bg-white/10 text-white" : "text-muted"}`}>
+              <Link href={href} key={href} className={`flex flex-col items-center gap-1 rounded-xl py-2 text-[10px] font-bold ${active ? "bg-white/10 text-white" : "text-muted"}`}>
                 <Icon size={17}/>
                 {label}
               </Link>
