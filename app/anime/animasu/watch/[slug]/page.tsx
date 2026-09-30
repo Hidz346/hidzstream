@@ -16,9 +16,7 @@ function collectServers(data: any): StreamServer[] {
 
   const push = (name: any, url: any) => {
     if (!url || typeof url !== "string") return;
-    if (!found.some((item) => item.url === url)) {
-      found.push({ name: String(name || "Server"), url });
-    }
+    if (!found.some((item) => item.url === url)) found.push({ name: String(name || "Server"), url });
   };
 
   const qualities = data?.server?.qualities || data?.qualities || [];
@@ -28,24 +26,15 @@ function collectServers(data: any): StreamServer[] {
       if (!Array.isArray(list)) continue;
       for (const server of list) {
         push(
-          quality?.title
-            ? `${quality.title} - ${server?.title || server?.server || server?.name || "Server"}`
-            : server?.title || server?.server || server?.name,
+          quality?.title ? `${quality.title} - ${server?.title || server?.server || server?.name || "Server"}` : server?.title || server?.server || server?.name,
           server?.href || server?.url || server?.iframe || server?.src
         );
       }
     }
   }
 
-  for (const server of data?.stream_servers || data?.servers || []) {
-    push(
-      server?.server || server?.name || server?.title,
-      server?.iframe || server?.url || server?.href || server?.src
-    );
-  }
-
-  for (const server of data?.streams || []) {
-    push(server?.name || server?.title || "Server", server?.url || server?.iframe || server?.src);
+  for (const server of data?.stream_servers || data?.servers || data?.streams || []) {
+    push(server?.server || server?.name || server?.title, server?.iframe || server?.url || server?.href || server?.src);
   }
 
   push("Default", data?.defaultStreamingUrl);
@@ -55,27 +44,6 @@ function collectServers(data: any): StreamServer[] {
   return found;
 }
 
-async function resolveServerUrl(raw: string) {
-  let resolved = raw.trim();
-  if (!resolved) return "";
-
-  if (resolved.startsWith("/anime/")) {
-    const response = await fetch(`/api/anime${resolved.slice("/anime".length)}`, { cache: "no-store" });
-    if (!response.ok) throw new Error(`Server endpoint returned ${response.status}`);
-
-    const payload = await response.json();
-    const data = normalizeResponse(payload);
-    resolved = data?.url || data?.iframe || data?.streamUrl || data?.defaultStreamingUrl || "";
-  }
-
-  if (resolved.startsWith("/")) {
-    const base = process.env.NEXT_PUBLIC_SANKA_API_URL || "https://www.sankavollerei.web.id";
-    resolved = `${base.replace(/\/$/, "")}${resolved}`;
-  }
-
-  return resolved;
-}
-
 export default function WatchPage({ params }: { params: Promise<{ slug: string }> }) {
   const [slug, setSlug] = useState("");
   const [data, setData] = useState<any>(null);
@@ -83,7 +51,6 @@ export default function WatchPage({ params }: { params: Promise<{ slug: string }
   const [resolved, setResolved] = useState("");
   const [kind, setKind] = useState<"iframe" | "video" | "hls">("iframe");
   const [loading, setLoading] = useState(true);
-  const [resolving, setResolving] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -91,6 +58,7 @@ export default function WatchPage({ params }: { params: Promise<{ slug: string }
 
     params.then(async (p) => {
       if (cancelled) return;
+
       setSlug(p.slug);
       setLoading(true);
       setError("");
@@ -124,71 +92,13 @@ export default function WatchPage({ params }: { params: Promise<{ slug: string }
   const active = servers[selected];
 
   useEffect(() => {
-    let cancelled = false;
-
-    async function resolve() {
-      if (!active?.url) {
-        setResolved("");
-        setResolving(false);
-        return;
-      }
-
-      setResolving(true);
-      setError("");
-
-      try {
-        const url = await resolveServerUrl(active.url);
-        if (!url) throw new Error("Server tidak mengembalikan URL player.");
-        if (cancelled) return;
-
-        if (isHls(url)) {
-          setKind("hls");
-          setResolved(url);
-          return;
-        }
-
-        if (isVideo(url)) {
-          setKind("video");
-          setResolved(url);
-          return;
-        }
-
-        try {
-          const extractResponse = await fetch(`/api/anime/extract?url=${encodeURIComponent(url)}`, { cache: "no-store" });
-          const extracted = await extractResponse.json();
-
-          if (!cancelled && extracted?.success && Array.isArray(extracted.sources) && extracted.sources[0]) {
-            const direct = extracted.sources[0];
-            setKind(isHls(direct) ? "hls" : "video");
-            setResolved(direct);
-            return;
-          }
-        } catch {}
-
-        if (!cancelled) {
-          setKind("iframe");
-          setResolved(url);
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setResolved("");
-          setError(err instanceof Error ? err.message : "Gagal menyiapkan player.");
-        }
-      } finally {
-        if (!cancelled) setResolving(false);
-      }
-    }
-
-    resolve();
-
-    return () => {
-      cancelled = true;
-    };
+    setResolved(active?.url || "");
+    if (active?.url && isHls(active.url)) setKind("hls");
+    else if (active?.url && isVideo(active.url)) setKind("video");
+    else setKind("iframe");
   }, [active?.url]);
 
-  if (loading) {
-    return <div className="surface rounded-3xl p-8 text-sm text-muted">Memuat player dan server...</div>;
-  }
+  if (loading) return <div className="surface rounded-3xl p-8 text-sm text-muted">Memuat player dan server...</div>;
 
   if (error && !data) {
     return (
@@ -209,11 +119,9 @@ export default function WatchPage({ params }: { params: Promise<{ slug: string }
 
       <div className="surface overflow-hidden rounded-[28px]">
         <div className="aspect-video bg-black">
-          {resolving ? (
-            <div className="grid h-full place-items-center text-center text-xs text-muted">
-              <div><RefreshCw className="mx-auto mb-3 animate-spin" size={25}/><p>Menyiapkan source streaming...</p></div>
-            </div>
-          ) : resolved && kind === "iframe" ? (
+          {resolved && kind !== "iframe" ? (
+            <StreamPlayer src={resolved} title={data?.title || slug} onError={setError} />
+          ) : resolved ? (
             <iframe
               src={resolved}
               title={data?.title || slug}
@@ -222,8 +130,6 @@ export default function WatchPage({ params }: { params: Promise<{ slug: string }
               allowFullScreen
               referrerPolicy="no-referrer-when-downgrade"
             />
-          ) : resolved ? (
-            <StreamPlayer src={resolved} title={data?.title || slug} onError={setError} />
           ) : (
             <div className="grid h-full place-items-center p-8 text-center text-xs text-muted">
               <div><Server className="mx-auto mb-3" size={26}/><p>Source streaming belum tersedia.</p></div>
@@ -259,18 +165,17 @@ export default function WatchPage({ params }: { params: Promise<{ slug: string }
 
           {active?.url && (
             <div className="mt-4 flex flex-wrap gap-2">
-              <a
-                href={resolved || active.url}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-full bg-white/5 px-3 py-2 text-[11px] font-bold text-muted hover:text-white"
-              >
+              <a href={resolved || active.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-full bg-white/5 px-3 py-2 text-[11px] font-bold text-muted hover:text-white">
                 <ExternalLink size={13}/> Buka source
               </a>
               {error && <span className="rounded-full bg-red-500/10 px-3 py-2 text-[11px] font-bold text-red-300">{error}</span>}
             </div>
           )}
         </div>
+      </div>
+
+      <div className="text-xs text-muted">
+        <RefreshCw className="mr-1 inline-block" size={12}/> Player web memakai source yang dikembalikan API; ketersediaan server mengikuti upstream.
       </div>
     </div>
   );
