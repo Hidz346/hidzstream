@@ -10,6 +10,14 @@ function normalizePath(path: string) {
   return path.startsWith("/") ? path : `/${path}`;
 }
 
+function decodeValue(value: string) {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
 function sourceError(data: any) {
   return data?.status === false || Boolean(data?.error && !data?.result && !data?.data);
 }
@@ -52,11 +60,11 @@ function makeTarget(path: string) {
     if (parts[2] === "search" && parts[3]) {
       return {
         endpoint: "/anime/search",
-        params: { query: parts.slice(3).join("/"), page },
+        params: { query: decodeValue(parts.slice(3).join("/")), page },
       };
     }
     if (parts[2] === "detail" && parts[3]) {
-      return { endpoint: "/anime/detail", params: { url: parts.slice(3).join("/") } };
+      return { endpoint: "/anime/detail", params: { url: decodeValue(parts.slice(3).join("/")) } };
     }
     if (parts[2] === "episode" && parts[3]) {
       return { endpoint: "/anime/stream", params: { url: parts.slice(3).join("/") } };
@@ -68,13 +76,13 @@ function makeTarget(path: string) {
       return { endpoint: "/manga/home", params: {} };
     }
     if (parts[1] === "search" && parts[2]) {
-      return { endpoint: "/manga/search", params: { query: parts.slice(2).join("/") } };
+      return { endpoint: "/manga/search", params: { query: decodeValue(parts.slice(2).join("/")) } };
     }
     if (parts[1] === "comic" && parts[2]) {
-      return { endpoint: "/manga/detail", params: { id: parts.slice(2).join("/") } };
+      return { endpoint: "/manga/detail", params: { id: decodeValue(parts.slice(2).join("/")) } };
     }
     if (parts[1] === "chapter" && parts[2]) {
-      return { endpoint: "/manga/read", params: { chapterId: parts.slice(2).join("/") } };
+      return { endpoint: "/manga/read", params: { chapterId: decodeValue(parts.slice(2).join("/")) } };
     }
   }
 
