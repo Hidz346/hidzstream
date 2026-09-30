@@ -84,7 +84,7 @@ async function resolveVidhide(url: string, referer: string) {
   try {
     const html = await fetchText(url, { headers: { Referer: referer } }, 10000);
     const packed = html.match(
-      /eval\(function\(p,a,c,k,e,d\)\{while\(c--\).*?return p\}\('(.*?)',(\d+),(\d+),'(.*?)'\.split\('\|'\)\)\)/s,
+      /eval\(function\(p,a,c,k,e,d\)\{while\(c--\)[\\s\\S]*?return p\}\('(.*?)',(\\d+),(\\d+),'(.*?)'\\.split\\('\|'\\)\\)\\)/,
     );
 
     if (packed) {
