@@ -24,29 +24,25 @@ export default function TvPage() {
 
   const channels = useMemo(
     () => groups.flatMap((group) => Array.isArray(group?.channels) ? group.channels : []),
-    [groups]
+    [groups],
   );
 
   useEffect(() => {
     let cancelled = false;
 
     fetch("/api/tv/list", { cache: "no-store" })
-      .then((response) => response.json())
+      .then((r) => r.json())
       .then((payload) => {
         if (cancelled) return;
-
-        const result = payload?.result || payload?.data || payload;
-        setGroups(Array.isArray(result?.genres) ? result.genres : []);
-
-        if (payload?.status === false) {
-          setError(payload?.message || "Gagal memuat channel.");
-        }
+        const result = payload?.data || {};
+        setGroups(Array.isArray(result.genres) ? result.genres : []);
+        setError(payload?.status === false ? payload.message || "Gagal memuat channel." : "");
         setLoading(false);
       })
       .catch((err) => {
         if (!cancelled) {
-          setLoading(false);
           setError(err instanceof Error ? err.message : "Gagal memuat channel.");
+          setLoading(false);
         }
       });
 
@@ -57,14 +53,14 @@ export default function TvPage() {
 
   async function play(channel: Channel) {
     setActive(channel);
-    setStream("");
     setPlayerLoading(true);
+    setStream("");
     setError("");
 
     try {
       const response = await fetch(
-        `/api/tv/stream?slug=${encodeURIComponent(channel.slug)}`,
-        { cache: "no-store" }
+        `/api/tv/stream?channel=${encodeURIComponent(channel.slug)}`,
+        { cache: "no-store" },
       );
       const payload = await response.json();
 
@@ -72,16 +68,14 @@ export default function TvPage() {
         throw new Error(payload?.message || "Stream channel tidak tersedia.");
       }
 
-      const result = payload?.result || payload?.data || {};
+      const result = payload?.data || {};
       const candidates = [
-        result?.stream?.hls,
-        ...(Array.isArray(result?.stream?.cdns)
-          ? result.stream.cdns.map((cdn: any) => cdn?.hls).filter(Boolean)
-          : []),
+        result.streamUrl,
+        ...(Array.isArray(result.streams) ? result.streams.map((item: any) => item?.url).filter(Boolean) : []),
       ].filter(Boolean);
 
       if (!candidates.length) {
-        throw new Error("API tidak mengembalikan stream HLS untuk channel ini.");
+        throw new Error("Source HLS/video channel tidak ditemukan.");
       }
 
       setStream(String(candidates[0]));
@@ -98,7 +92,7 @@ export default function TvPage() {
         <div className="text-[10px] font-black uppercase tracking-[0.25em] text-violet-300">HIDZ STREAMING</div>
         <h1 className="mt-2 text-3xl font-black">HIDZ TV</h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
-          Daftar channel Live TV dari sumber yang dipakai build APK.
+          Channel Live TV mengikuti source dan struktur yang dipakai build APK.
         </p>
       </header>
 
@@ -106,15 +100,15 @@ export default function TvPage() {
         <div className="aspect-video bg-black">
           {playerLoading ? (
             <div className="grid h-full place-items-center text-sm text-muted">
-              <RefreshCw className="animate-spin" size={25}/>
+              <RefreshCw className="animate-spin" size={25} />
             </div>
           ) : stream ? (
-            <HlsPlayer src={stream}/>
+            <HlsPlayer src={stream} />
           ) : (
             <div className="grid h-full place-items-center p-8 text-center text-sm text-muted">
               <div>
-                <Tv className="mx-auto mb-3" size={30}/>
-                <p>{active ? "Tidak ada source HLS yang bisa diputar." : "Pilih channel untuk mulai menonton."}</p>
+                <Tv className="mx-auto mb-3" size={30} />
+                <p>{active ? "Source channel tidak tersedia." : "Pilih channel untuk mulai menonton."}</p>
               </div>
             </div>
           )}
@@ -129,7 +123,8 @@ export default function TvPage() {
 
           {loading ? (
             <div className="grid h-32 place-items-center text-sm text-muted">
-              <RefreshCw className="mr-2 inline-block animate-spin" size={18}/> Memuat channel...
+              <RefreshCw className="mr-2 inline-block animate-spin" size={18} />
+              Memuat channel...
             </div>
           ) : channels.length ? (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
@@ -142,16 +137,18 @@ export default function TvPage() {
                 >
                   <div className="aspect-video bg-black/40">
                     {channel.image ? (
-                      <img src={imageSrc(channel.image)} alt="" className="h-full w-full object-contain p-4"/>
+                      <img src={imageSrc(channel.image)} alt="" className="h-full w-full object-contain p-4" />
                     ) : (
-                      <div className="grid h-full place-items-center"><Tv size={25} className="text-muted"/></div>
+                      <div className="grid h-full place-items-center">
+                        <Tv size={25} className="text-muted" />
+                      </div>
                     )}
                   </div>
-
                   <div className="p-3">
                     <div className="line-clamp-2 text-xs font-black">{channel.name}</div>
                     <div className="mt-1 flex items-center gap-1 text-[10px] text-muted">
-                      <Play size={11}/>{channel.number || "Live"}
+                      <Play size={11} />
+                      {channel.number || "Live"}
                     </div>
                   </div>
                 </button>
@@ -159,7 +156,7 @@ export default function TvPage() {
             </div>
           ) : (
             <div className="rounded-2xl border border-dashed border-white/10 px-5 py-10 text-center text-sm text-muted">
-              Belum ada channel dari API.
+              Belum ada channel dari source.
             </div>
           )}
         </div>
