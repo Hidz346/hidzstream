@@ -83,40 +83,14 @@ function unique<T>(items: T[], key: (item: T) => string) {
 async function resolveVidhide(url: string, referer: string) {
   try {
     const html = await fetchText(url, { headers: { Referer: referer } }, 10000);
-    const packed = html.match(
-      /eval\(function\(p,a,c,k,e,d\)\{while\(c--\)[\\s\\S]*?return p\}\('(.*?)',(\\d+),(\\d+),'(.*?)'\\.split\\('\|'\\)\\)\\)/,
-    );
+    const candidates = [
+      ...html.matchAll(/https?:\\/\\/[^\\s"'<>]+\\.m3u8[^\\s"'<>]*/gi),
+      ...html.matchAll(/(?:file|src|source|url)\\s*[:=]\\s*["'](https?:\\/\\/[^"']+)["']/gi),
+    ]
+      .map((match) => match[1] || match[0])
+      .filter((value) => /\\.m3u8(?:$|[?#])/i.test(value));
 
-    if (packed) {
-      const alphabet =
-        "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-      const base = Number(packed[2]) || 36;
-      const words = packed[4].split("|");
-
-      const decode = (value: string) => {
-        let n = 0;
-        for (const ch of value) {
-          const idx = alphabet.indexOf(ch);
-          if (idx < 0 || idx >= base) return null;
-          n = n * base + idx;
-        }
-        return n;
-      };
-
-      const unpacked = packed[1].replace(/\b\w+\b/g, (word) => {
-        const index = decode(word);
-        return index !== null && index < words.length && words[index]
-          ? words[index]
-          : word;
-      });
-
-      return (
-        unpacked.match(/https?:\/\/[^\s"',]+\.m3u8[^\s"',]*/i)?.[0] ||
-        null
-      );
-    }
-
-    return html.match(/https?:\/\/[^\s"',]+\.m3u8[^\s"',]*/i)?.[0] || null;
+    return candidates[0] || null;
   } catch {
     return null;
   }
