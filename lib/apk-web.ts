@@ -84,11 +84,11 @@ async function resolveVidhide(url: string, referer: string) {
   try {
     const html = await fetchText(url, { headers: { Referer: referer } }, 10000);
     const candidates = [
-      ...html.matchAll(/https?:\\/\\/[^\\s"'<>]+\\.m3u8[^\\s"'<>]*/gi),
-      ...html.matchAll(/(?:file|src|source|url)\\s*[:=]\\s*["'](https?:\\/\\/[^"']+)["']/gi),
+      ...html.matchAll(/https?:\/\/[^\s"'<>]+\.m3u8[^\s"'<>]*/gi),
+      ...html.matchAll(/(?:file|src|source|url)\s*[:=]\s*["'](https?:\/\/[^"']+)["']/gi),
     ]
       .map((match) => match[1] || match[0])
-      .filter((value) => /\\.m3u8(?:$|[?#])/i.test(value));
+      .filter((value) => /\.m3u8(?:$|[?#])/i.test(value));
 
     return candidates[0] || null;
   } catch {
