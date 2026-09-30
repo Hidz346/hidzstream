@@ -1,49 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSankaBaseUrl } from "@/lib/sanka-api";
+import { fetchSankaJson } from "@/lib/sanka-api";
 
 export const runtime = "nodejs";
 
 export async function GET(request: NextRequest) {
-  const slug = request.nextUrl.searchParams.get("slug")?.trim();
+  const channel = request.nextUrl.searchParams.get("channel") || request.nextUrl.searchParams.get("slug") || "";
 
-  if (!slug) {
+  if (!channel.trim()) {
     return NextResponse.json(
-      { status: false, message: "Parameter slug diperlukan" },
-      { status: 400 }
+      { status: false, message: "Parameter channel diperlukan" },
+      { status: 400 },
     );
   }
 
   try {
-    const url = new URL(`${getSankaBaseUrl()}/livetv/stream`);
-    url.searchParams.set("slug", slug);
-
-    const response = await fetch(url, {
-      headers: {
-        Accept: "application/json",
-        "User-Agent": "HidzStreaming/1.0",
-      },
-      cache: "no-store",
-      signal: AbortSignal.timeout(15000),
-    });
-
-    const payload = await response.json();
-
-    if (!response.ok || payload?.status === false) {
-      return NextResponse.json(
-        { status: false, message: payload?.message || "Live TV stream unavailable" },
-        { status: 502 }
-      );
-    }
-
-    return NextResponse.json(payload, {
-      headers: { "Cache-Control": "no-store" },
-    });
+    const data = await fetchSankaJson(`/livetv/stream?channel=${encodeURIComponent(channel)}`);
+    return NextResponse.json(data, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     console.error("Live TV stream:", error);
-
     return NextResponse.json(
       { status: false, message: "Live TV stream temporarily unavailable" },
-      { status: 502 }
+      { status: 502 },
     );
   }
 }
