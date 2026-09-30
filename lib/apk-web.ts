@@ -774,7 +774,351 @@ async function liveTvStream(channel: string) {
   };
 }
 
-export async function fetchApkJson(path: string, search = new URLSearchParams()) {
+
+
+const MOVIEBOX = "https://themoviebox.xyz/id";
+const MOVIE_API = "https://h5-api.aoneroom.com/wefeed-h5api-bff";
+const DRACINEMA = "https://www.dracinema.com";
+
+async function movieLatest(page = 1) {
+  const json = await fetchJson(
+    `${MOVIE_API}/subject/trending?page=${page}&perPage=20`,
+    {
+      headers: {
+        "X-Request-Lang": "id",
+        Origin: MOVIEBOX,
+        Referer: `${MOVIEBOX}/`,
+      },
+    },
+  );
+
+  const list = json?.data?.subjectList || json?.data?.items || [];
+
+  return {
+    status: true,
+    data: list.map((item: AnyRecord) => ({
+      id: item.detailPath,
+      slug: item.detailPath,
+      title: item.title,
+      thumbnail: item.cover?.url || null,
+      rating: item.imdbRatingValue || "7.8",
+      year: String(item.releaseDate || "").slice(0, 4),
+      badge: item.subjectType === 2 ? "Series" : "Movie",
+      url: `${MOVIEBOX}/detail/${item.detailPath}`,
+    })),
+  };
+}
+
+async function movieDetail(urlOrPath: string) {
+  const cleanPath = urlOrPath
+    .replace(MOVIEBOX, "")
+    .replace(/^\/id\/detail\//, "")
+    .replace(/^\/detail\//, "")
+    .replace(/^\/id\//, "")
+    .split("?")[0]
+    .replace(/^\/+|\/+$/g, "");
+
+  const json = await fetchJson(
+    `${MOVIE_API}/detail?detailPath=${encodeURIComponent(cleanPath)}`,
+    {
+      headers: {
+        "X-Request-Lang": "id",
+        Origin: MOVIEBOX,
+        Referer: `${MOVIEBOX}/`,
+      },
+    },
+  );
+
+  const data = json?.data;
+  const subject = data?.subject;
+  const resource = data?.resource;
+  if (!subject) throw new Error("Movie detail tidak ditemukan");
+
+  const isMovie = subject.subjectType === 1;
+  const episodes: AnyRecord[] = [];
+
+  if (isMovie) {
+    episodes.push({
+      id: `${cleanPath}?se=0&ep=0&subId=${subject.subjectId}`,
+      episode: "1",
+      title: "Full Movie",
+      url: `${cleanPath}?se=0&ep=0&subId=${subject.subjectId}`,
+    });
+  } else {
+    for (const season of resource?.seasons || []) {
+      const se = Number(season.se || 1);
+      const values = season.allEp
+        ? String(season.allEp).split(",").map((item: string) => Number(item)).filter(Boolean)
+        : Array.from({ length: Number(season.maxEp) || 1 }, (_, i) => i + 1);
+
+      for (const ep of values) {
+        episodes.push({
+          id: `${cleanPath}?se=${se}&ep=${ep}&subId=${subject.subjectId}`,
+          episode: String(ep),
+          title: `S${se} Episode ${ep}`,
+          url: `${cleanPath}?se=${se}&ep=${ep}&subId=${subject.subjectId}`,
+        });
+      }
+    }
+  }
+
+  return {
+    status: true,
+    data: {
+      title: subject.title,
+      thumbnail: subject.cover?.url || null,
+      backdrop: subject.stills?.url || subject.cover?.url || null,
+      synopsis: subject.description || null,
+      rating: subject.imdbRatingValue || "7.8",
+      year: String(subject.releaseDate || "").slice(0, 4),
+      episodes,
+    },
+  };
+}
+
+async function getMovieToken() {
+  for (const detailPath of [
+    "lucifer-indonesian-YwF1Ii2H3B5",
+    "avatar-WLDIi21IUBa",
+    "the-furious-6lxRH1LLAe5",
+  ]) {
+    try {
+      const response = await fetch(
+        `${MOVIE_API}/detail?detailPath=${encodeURIComponent(detailPath)}`,
+        {
+          headers: {
+            "User-Agent": UA,
+            Accept: "application/json",
+            "X-Request-Lang": "id",
+            Origin: MOVIEBOX,
+            Referer: `${MOVIEBOX}/`,
+          },
+          signal: AbortSignal.timeout(10000),
+        },
+      );
+
+      const xUser = response.headers.get("x-user");
+      if (xUser) {
+        try {
+          const parsed = JSON.parse(xUser);
+          if (parsed?.token) return String(parsed.token);
+        } catch {
+          // Ignore malformed token headers.
+        }
+      }
+
+      const cookies = response.headers.get("set-cookie") || "";
+      const match = cookies.match(/token=([^;]+)/i);
+      if (match?.[1]) return match[1];
+    } catch {
+      // Try the next bootstrap path.
+    }
+  }
+
+  return "";
+}
+
+async function movieStream(urlOrPath: string, episode = 1) {
+  const detail = await movieDetail(urlOrPath);
+  const query = new URLSearchParams(urlOrPath.split("?")[1] || "");
+  const cleanPath = urlOrPath
+    .replace(MOVIEBOX, "")
+    .replace(/^\/id\/detail\//, "")
+    .replace(/^\/detail\//, "")
+    .replace(/^\/id\//, "")
+    .split("?")[0]
+    .replace(/^\/+|\/+$/g, "");
+
+  const se = Number(query.get("se") || (detail.data.episodes.length ? 1 : 0));
+  const ep = Number(query.get("ep") || episode);
+  const subId =
+    query.get("subId") ||
+    detail.data.episodes[0]?.url.match(/subId=([^&]+)/)?.[1] ||
+    "";
+
+  const token = await getMovieToken();
+
+  async function play(season: number, number: number) {
+    const url =
+      `${MOVIE_API}/subject/play?subjectId=${encodeURIComponent(subId)}&se=${season}&ep=${number}&detailPath=${encodeURIComponent(cleanPath)}&streamSignType=1`;
+
+    const response = await fetch(url, {
+      headers: {
+        "User-Agent": UA,
+        Accept: "application/json",
+        "X-Request-Lang": "id",
+        Origin: MOVIEBOX,
+        Referer: `${MOVIEBOX}/spa/videoPlayPage/movies/${cleanPath}`,
+        ...(token
+          ? {
+              Authorization: `Bearer ${token}`,
+              Cookie: `token=${token}; mb_token="${token}"`,
+            }
+          : {}),
+      },
+      signal: AbortSignal.timeout(15000),
+    });
+
+    return response.ok ? response.json() : null;
+  }
+
+  let payload = await play(se, ep);
+  let streams = payload?.data?.streams || [];
+  let hls = payload?.data?.hls || [];
+
+  if (!streams.length && !hls.length) {
+    payload = await play(0, 0);
+    streams = payload?.data?.streams || [];
+    hls = payload?.data?.hls || [];
+  }
+
+  if (!streams.length && !hls.length) {
+    payload = await play(1, 1);
+    streams = payload?.data?.streams || [];
+    hls = payload?.data?.hls || [];
+  }
+
+  const servers = [
+    ...streams.map((item: AnyRecord) => ({
+      name: `TheMovieBox ${item.resolutions || "HD"}`,
+      url: item.url,
+      kind: /\.m3u8/i.test(String(item.url || "")) ? "hls" : "video",
+    })),
+    ...hls.map((item: AnyRecord) => ({
+      name: "TheMovieBox HLS",
+      url: item.url,
+      kind: "hls",
+    })),
+  ].filter((item: AnyRecord) => item.url);
+
+  return {
+    status: true,
+    data: {
+      title: detail.data.title,
+      streamUrl: servers[0]?.url || null,
+      servers,
+    },
+  };
+}
+
+async function dracinLatest(page = 1) {
+  const html = await fetchText(`${DRACINEMA}/collections?page=${page}`);
+  const $ = load(html);
+  const data: AnyRecord[] = [];
+
+  $("a[href^='/movie/']").each((_, a) => {
+    const href = $(a).attr("href") || "";
+    const slug = href.replace(/^\/movie\//, "").replace(/\/$/, "");
+    if (!slug || data.some((item) => item.slug === slug)) return;
+
+    const image = $(a).find("img").first();
+    const title = String(image.attr("alt") || $(a).text())
+      .replace(/Full Episode Subtitle Indonesia - Dracinema/i, "")
+      .replace(/Subtitle Indonesia/i, "")
+      .replace(/- Dracinema/i, "")
+      .trim();
+
+    if (title) {
+      data.push({
+        id: `${DRACINEMA}/movie/${slug}`,
+        title,
+        slug,
+        url: `${DRACINEMA}/movie/${slug}`,
+        thumbnail: abs(DRACINEMA, image.attr("src") || image.attr("data-src") || ""),
+        badge: "Sub Indo",
+      });
+    }
+  });
+
+  return { status: true, data };
+}
+
+async function dracinDetail(urlOrSlug: string) {
+  const slug = urlOrSlug
+    .replace(DRACINEMA, "")
+    .replace(/^\/movie\//, "")
+    .replace(/^\/play\//, "")
+    .split("/")[0];
+
+  const html = await fetchText(`${DRACINEMA}/movie/${slug}`);
+  const $ = load(html);
+  const title = $("h1").first().text().trim() || $("title").first().text().trim();
+  const poster =
+    $("meta[property='og:image']").attr("content") ||
+    $("img").first().attr("src") ||
+    "";
+  const synopsis =
+    $("meta[property='og:description']").attr("content") ||
+    $("p.text-sm, p.description").first().text().trim() ||
+    "";
+
+  let total = 1;
+  $("a[href*='/play/']").each((_, a) => {
+    const match = $(a).attr("href")?.match(/\/play\/[^/]+\/(\d+)/);
+    if (match) total = Math.max(total, Number(match[1]) || 1);
+  });
+
+  const range = html.match(/Episode\s+(\d+)\s*-\s*(\d+)/i);
+  if (range) total = Math.max(total, Number(range[2]) || total);
+
+  return {
+    status: true,
+    data: {
+      title,
+      thumbnail: poster,
+      synopsis,
+      episodes: Array.from({ length: total }, (_, index) => ({
+        id: `${DRACINEMA}/play/${slug}/${index + 1}`,
+        episode: String(index + 1),
+        title: `Episode ${index + 1}`,
+        url: `${DRACINEMA}/play/${slug}/${index + 1}`,
+      })),
+    },
+  };
+}
+
+async function dracinStream(urlOrSlug: string, episode = 1) {
+  const key = process.env.DRACINEMA_API_KEY;
+  if (!key) throw new Error("DRACINEMA_API_KEY belum dikonfigurasi");
+
+  const slug = urlOrSlug
+    .replace(DRACINEMA, "")
+    .replace(/^\/movie\//, "")
+    .replace(/^\/play\//, "")
+    .split("/")[0];
+
+  const payload = await fetchJson(
+    `${DRACINEMA}/api/playback`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-API-Key": key,
+        Referer: `${DRACINEMA}/play/${slug}/${Math.max(1, episode)}`,
+      },
+      body: JSON.stringify({ movieKey: slug, episode: Math.max(1, episode) }),
+    },
+  );
+
+  const token = String(payload?.token || "");
+  let direct = "";
+
+  if (token.split(".").length >= 2) {
+    const body = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    const padded = body + "=".repeat((4 - (body.length % 4)) % 4);
+    const decoded = JSON.parse(Buffer.from(padded, "base64").toString("utf8"));
+    direct = decoded?.data?.detail?.videoUrls?.[0]?.url || "";
+  }
+
+  return {
+    status: true,
+    data: {
+      streamUrl: direct || null,
+      servers: direct ? [{ name: "Dracinema Direct", url: direct, kind: "video" }] : [],
+    },
+  };
+}
+\nexport async function fetchApkJson(path: string, search = new URLSearchParams()) {
   const clean = path.replace(/^\/+/, "");
   const parts = clean.split("/").filter(Boolean);
 
@@ -802,6 +1146,30 @@ export async function fetchApkJson(path: string, search = new URLSearchParams())
   if (parts[0] === "livetv" && parts[1] === "list") return liveTvList();
   if (parts[0] === "livetv" && parts[1] === "stream") {
     return liveTvStream(search.get("channel") || search.get("slug") || "");
+  }
+
+  if (parts[0] === "anime" && parts[1] === "movies") {
+    return movieLatest(Number(search.get("page") || 1));
+  }
+
+  if (parts[0] === "movies" && parts[1] === "detail") {
+    return movieDetail(decodeURIComponent(parts.slice(2).join("/")));
+  }
+
+  if (parts[0] === "movies" && parts[1] === "stream") {
+    return movieStream(search.get("url") || "", Number(search.get("episode") || 1));
+  }
+
+  if (parts[0] === "drachin" && parts[1] === "home") {
+    return dracinLatest(Number(search.get("page") || 1));
+  }
+
+  if (parts[0] === "drachin" && parts[1] === "detail") {
+    return dracinDetail(decodeURIComponent(parts.slice(2).join("/")));
+  }
+
+  if (parts[0] === "drachin" && parts[1] === "stream") {
+    return dracinStream(search.get("url") || "", Number(search.get("episode") || 1));
   }
 
   throw new Error(`Unsupported source route: ${clean}`);
