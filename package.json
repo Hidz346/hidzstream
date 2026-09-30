@@ -9,6 +9,7 @@
     "lint": "tsc --noEmit --pretty false"
   },
   "dependencies": {
+    "hls.js": "^1.7.3",
     "lucide-react": "^0.553.0",
     "next": "^15.4.9",
     "react": "^19.2.1",
