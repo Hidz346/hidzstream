@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import MangaPageImage from "@/components/manga-page-image";
-import { imageSrc } from "@/components/utils";
 
 export default function ComicRead({ params }: { params: Promise<{ slug: string }> }) {
   const [slug, setSlug] = useState("");
@@ -13,6 +12,7 @@ export default function ComicRead({ params }: { params: Promise<{ slug: string }
   useEffect(() => {
     params.then((p) => {
       setSlug(p.slug);
+
       fetch(`/api/comic/chapter/${encodeURIComponent(p.slug)}`, { cache: "no-store" })
         .then((r) => r.json())
         .then(setD)
@@ -20,7 +20,9 @@ export default function ComicRead({ params }: { params: Promise<{ slug: string }
     });
   }, [params]);
 
-  if (!d) return <div className="surface rounded-3xl p-8 text-sm text-muted">Memuat chapter...</div>;
+  if (!d) {
+    return <div className="surface rounded-3xl p-8 text-sm text-muted">Memuat chapter...</div>;
+  }
 
   const raw = d.data || d;
   const images = Array.isArray(raw) ? raw : raw.images || raw.image_list || [];
