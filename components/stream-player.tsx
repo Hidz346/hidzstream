@@ -9,6 +9,11 @@ type StreamPlayerProps = {
   onError?: (message: string) => void;
 };
 
+type HlsErrorPayload = {
+  fatal: boolean;
+  type: string;
+};
+
 const isHls = (src: string) => /\.m3u8(?:$|[?#])/i.test(src);
 const isVideo = (src: string) => /\.(?:mp4|webm|ogg)(?:$|[?#])/i.test(src);
 
@@ -24,10 +29,8 @@ export default function StreamPlayer({ src, title = "HidzStreaming Player", onEr
     setError("");
     onError?.("");
 
-    if (hlsRef.current) {
-      hlsRef.current.destroy();
-      hlsRef.current = null;
-    }
+    hlsRef.current?.destroy();
+    hlsRef.current = null;
 
     if (!isHls(src)) {
       video.src = src;
@@ -64,7 +67,7 @@ export default function StreamPlayer({ src, title = "HidzStreaming Player", onEr
     hls.loadSource(src);
     hls.attachMedia(video);
 
-    const handleError = (_event: string, data: Hls.ErrorData) => {
+    const handleError = (_event: string, data: HlsErrorPayload) => {
       if (!data.fatal) return;
 
       const message =
