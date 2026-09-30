@@ -119,7 +119,7 @@ function queryString(params: Record<string, string>) {
 function normalizePayload(path: string, payload: any) {
   const result = payload?.result ?? payload?.data ?? payload;
 
-  if (/^\\/anime\\/latest|^\\/anime\\/search/.test(path)) {
+  if (path === "/anime/latest" || path === "/anime/search") {
     return { status: true, data: Array.isArray(result?.data) ? result.data : [] };
   }
 
@@ -151,7 +151,7 @@ function normalizePayload(path: string, payload: any) {
     };
   }
 
-  if (/^\\/donghua\\/latest|^\\/donghua\\/search/.test(path)) {
+  if (path === "/donghua/latest" || path === "/donghua/search") {
     return { status: true, data: Array.isArray(result?.data) ? result.data : [] };
   }
 
