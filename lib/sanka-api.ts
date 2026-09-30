@@ -67,7 +67,7 @@ function makeTarget(path: string) {
       return { endpoint: "/anime/detail", params: { url: decodeValue(parts.slice(3).join("/")) } };
     }
     if (parts[2] === "episode" && parts[3]) {
-      return { endpoint: "/anime/stream", params: { url: parts.slice(3).join("/") } };
+      return { endpoint: "/anime/stream", params: { url: decodeValue(parts.slice(3).join("/")) } };
     }
   }
 
@@ -97,10 +97,10 @@ function makeTarget(path: string) {
       };
     }
     if (parts[1] === "detail" && parts[2]) {
-      return { endpoint: "/donghua/detail", params: { url: parts.slice(2).join("/") } };
+      return { endpoint: "/donghua/detail", params: { url: decodeValue(parts.slice(2).join("/")) } };
     }
     if (parts[1] === "episode" && parts[2]) {
-      return { endpoint: "/donghua/stream", params: { url: parts.slice(2).join("/") } };
+      return { endpoint: "/donghua/stream", params: { url: decodeValue(parts.slice(2).join("/")) } };
     }
   }
 
